@@ -1,0 +1,273 @@
+--====================================================
+-- Prison Life TP HUB+（逆バージョン）
+-- Aimbot / ESP / 無限ジャンプのみ
+-- Criminals のみロック
+--====================================================
+
+local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
+
+local Window = Rayfield:CreateWindow({
+    Name = "Prison Life TP HUB+ (Reverse Version)",
+    LoadingTitle = "Prison Life TP HUB+",
+    LoadingSubtitle = "Reverse Target Mode",
+    ConfigurationSaving = { Enabled = false }
+})
+
+--====================================================
+-- Tabs
+--====================================================
+
+local AIMTab = Window:CreateTab("AIMBOT")
+local ESPTab = Window:CreateTab("ESP")
+local JumpTab = Window:CreateTab("無限ジャンプ")
+
+--====================================================
+-- Vars
+--====================================================
+
+local player = game.Players.LocalPlayer
+local cam = workspace.CurrentCamera
+
+local char = player.Character or player.CharacterAdded:Wait()
+local humanoid = char:WaitForChild("Humanoid")
+
+local AimbotEnabled = false
+local ESPEnabled = false
+local ESP3DEnabled = false
+local infJumpEnabled = false
+
+local AimPart = "Head"
+local FOV = 120
+local Smoothness = 0.25
+local WallCheck = true
+
+local targetTeamName = "Criminals" -- ★逆バージョン：犯罪者だけロック
+
+--====================================================
+-- Rainbow
+--====================================================
+
+local function rainbow()
+    return Color3.fromHSV((tick() % 5) / 5, 1, 1)
+end
+
+--====================================================
+-- FOV Circle
+--====================================================
+
+local Circle = Drawing.new("Circle")
+Circle.Thickness = 2
+Circle.NumSides = 100
+Circle.Visible = false
+Circle.Radius = FOV * (300/200)
+Circle.Filled = false
+
+--====================================================
+-- AIMBOT GUI
+--====================================================
+
+AIMTab:CreateToggle({
+    Name = "AIMBOT",
+    CurrentValue = false,
+    Callback = function(v)
+        AimbotEnabled = v
+        Circle.Visible = v
+    end
+})
+
+AIMTab:CreateToggle({
+    Name = "壁越しエイムなし（WallCheck）",
+    CurrentValue = true,
+    Callback = function(v)
+        WallCheck = v
+    end
+})
+
+AIMTab:CreateSlider({
+    Name = "FOVサイズ",
+    Range = {50, 300},
+    Increment = 5,
+    CurrentValue = 120,
+    Callback = function(v)
+        FOV = v
+        Circle.Radius = v * (300/200)
+    end
+})
+
+AIMTab:CreateSlider({
+    Name = "エイムスムーズ",
+    Range = {0.05, 1},
+    Increment = 0.05,
+    CurrentValue = 0.25,
+    Callback = function(v)
+        Smoothness = v
+    end
+})
+
+--====================================================
+-- ESP GUI
+--====================================================
+
+ESPTab:CreateToggle({
+    Name = "ESP（Criminalsのみ）",
+    CurrentValue = false,
+    Callback = function(v)
+        ESPEnabled = v
+    end
+})
+
+ESPTab:CreateToggle({
+    Name = "3D ESP（虹色）",
+    CurrentValue = false,
+    Callback = function(v)
+        ESP3DEnabled = v
+    end
+})
+
+--====================================================
+-- 無限ジャンプ
+--====================================================
+
+JumpTab:CreateToggle({
+    Name = "無限ジャンプ",
+    CurrentValue = false,
+    Callback = function(v)
+        infJumpEnabled = v
+    end
+})
+
+--====================================================
+-- Raycast WallCheck
+--====================================================
+
+local function canSee(part)
+    if not WallCheck then return true end
+    local origin = cam.CFrame.Position
+    local direction = (part.Position - origin)
+    local params = RaycastParams.new()
+    params.FilterDescendantsInstances = {player.Character}
+    params.FilterType = Enum.RaycastFilterType.Blacklist
+    local result = workspace:Raycast(origin, direction, params)
+    return not result or result.Instance:IsDescendantOf(part.Parent)
+end
+
+--====================================================
+-- ESP Label cache
+--====================================================
+
+local labels = {}
+
+local function getLabel(plr)
+    if not labels[plr] then
+        local txt = Drawing.new("Text")
+        txt.Size = 16
+        txt.Outline = true
+        txt.Visible = false
+        labels[plr] = txt
+    end
+    return labels[plr]
+end
+
+--====================================================
+-- Main Loop
+--====================================================
+
+game:GetService("RunService").RenderStepped:Connect(function()
+
+    --===== FOV円 =====--
+    if AimbotEnabled then
+        Circle.Color = rainbow()
+        Circle.Position = Vector2.new(cam.ViewportSize.X/2, cam.ViewportSize.Y/2)
+        Circle.Radius = FOV * (300/200)
+    end
+
+    --===== AIMBOT（Criminalsのみ）=====--
+    if AimbotEnabled then
+        local nearest = nil
+        local shortest = FOV
+
+        for _, plr in ipairs(game.Players:GetPlayers()) do
+            if plr ~= player and plr.Team and plr.Team.Name == targetTeamName then
+                local c = plr.Character
+                if c and c:FindFirstChild(AimPart)
+                   and c:FindFirstChild("Humanoid")
+                   and c.Humanoid.Health > 0 then
+
+                    local pos, visible = cam:WorldToViewportPoint(c[AimPart].Position)
+                    if visible then
+                        local dist = (Vector2.new(pos.X, pos.Y)
+                            - Vector2.new(cam.ViewportSize.X/2, cam.ViewportSize.Y/2)).Magnitude
+
+                        if dist < shortest and canSee(c[AimPart]) then
+                            shortest = dist
+                            nearest = c[AimPart]
+                        end
+                    end
+                end
+            end
+        end
+
+        if nearest then
+            local dir = (nearest.Position - cam.CFrame.Position).Unit
+            cam.CFrame = cam.CFrame:Lerp(
+                CFrame.new(cam.CFrame.Position, cam.CFrame.Position + dir),
+                Smoothness
+            )
+        end
+    end
+
+    --===== ESP（Criminalsのみ）=====--
+    for _, plr in ipairs(game.Players:GetPlayers()) do
+        if plr.Team and plr.Team.Name == targetTeamName
+           and plr.Character
+           and plr.Character:FindFirstChild("HumanoidRootPart") then
+
+            local hrp = plr.Character.HumanoidRootPart
+            local pos, visible = cam:WorldToViewportPoint(hrp.Position)
+
+            local label = getLabel(plr)
+
+            if ESPEnabled then
+                if visible then
+                    label.Visible = true
+                    label.Position = Vector2.new(pos.X, pos.Y)
+                    label.Text = plr.Name
+                    label.Color = Color3.fromRGB(255, 80, 80)
+                else
+                    label.Visible = false
+                end
+            else
+                label.Visible = false
+            end
+
+            -- 3D ESP Rainbow
+            if ESP3DEnabled then
+                if not plr.Character:FindFirstChild("Highlight") then
+                    local h = Instance.new("Highlight", plr.Character)
+                    h.FillTransparency = 1
+                    h.OutlineTransparency = 0
+                end
+                plr.Character.Highlight.OutlineColor = rainbow()
+            else
+                if plr.Character:FindFirstChild("Highlight") then
+                    plr.Character.Highlight:Destroy()
+                end
+            end
+        end
+    end
+end)
+
+--====================================================
+-- 無限ジャンプ
+--====================================================
+
+game:GetService("UserInputService").JumpRequest:Connect(function()
+    if infJumpEnabled then
+        humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+    end
+end)
+
+player.CharacterAdded:Connect(function(new)
+    char = new
+    humanoid = new:WaitForChild("Humanoid")
+end)
