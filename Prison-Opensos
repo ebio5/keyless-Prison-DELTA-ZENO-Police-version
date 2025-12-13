@@ -6,10 +6,10 @@
 
 local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
 local Window = Rayfield:CreateWindow({
-Name = "Prison Life TP HUB+ (Reverse Version)",
-LoadingTitle = "Prison Life TP HUB+",
-LoadingSubtitle = "Reverse Target Mode",
-ConfigurationSaving = { Enabled = false }
+    Name = "Prison Life TP HUB+ (Reverse Version)",
+    LoadingTitle = "Prison Life TP HUB+",
+    LoadingSubtitle = "Reverse Target Mode",
+    ConfigurationSaving = { Enabled = false }
 })
 
 --====================================================
@@ -43,7 +43,7 @@ local targetTeamName = "Criminals"
 -- Rainbow
 --====================================================
 local function rainbow()
-return Color3.fromHSV((tick() % 5) / 5, 1, 1)
+    return Color3.fromHSV((tick() % 5) / 5, 1, 1)
 end
 
 --====================================================
@@ -79,14 +79,14 @@ JumpTab:CreateToggle({Name="無限ジャンプ", CurrentValue=false, Callback=fu
 -- Raycast WallCheck
 --====================================================
 local function canSee(part)
-if not WallCheck then return true end
-local origin = cam.CFrame.Position
-local direction = (part.Position - origin)
-local params = RaycastParams.new()
-params.FilterDescendantsInstances = {player.Character}
-params.FilterType = Enum.RaycastFilterType.Blacklist
-local result = workspace:Raycast(origin,direction,params)
-return not result or result.Instance:IsDescendantOf(part.Parent)
+    if not WallCheck then return true end
+    local origin = cam.CFrame.Position
+    local direction = (part.Position - origin)
+    local params = RaycastParams.new()
+    params.FilterDescendantsInstances = {player.Character}
+    params.FilterType = Enum.RaycastFilterType.Blacklist
+    local result = workspace:Raycast(origin,direction,params)
+    return not result or result.Instance:IsDescendantOf(part.Parent)
 end
 
 --====================================================
@@ -94,100 +94,99 @@ end
 --====================================================
 local labels = {}
 local function getLabel(plr)
-if not labels[plr] then
-local txt = Drawing.new("Text")
-txt.Size = 16
-txt.Outline = true
-txt.Visible = false
-labels[plr] = txt
-end
-return labels[plr]
+    if not labels[plr] then
+        local txt = Drawing.new("Text")
+        txt.Size = 16
+        txt.Outline = true
+        txt.Visible = false
+        labels[plr] = txt
+    end
+    return labels[plr]
 end
 
 --====================================================
 -- Main Loop
 --====================================================
 game:GetService("RunService").RenderStepped:Connect(function()
---===== FOV円 =====--
-if AimbotEnabled then
-Circle.Color = rainbow()
-Circle.Position = Vector2.new(cam.ViewportSize.X/2, cam.ViewportSize.Y/2)
-Circle.Radius = FOV * (300/200)
-end
+    --===== FOV円 =====--
+    if AimbotEnabled then
+        Circle.Color = rainbow()
+        Circle.Position = Vector2.new(cam.ViewportSize.X/2, cam.ViewportSize.Y/2)
+        Circle.Radius = FOV * (300/200)
+    end
 
---===== AIMBOT（Criminalsのみ）=====--  
-if AimbotEnabled then  
-    local nearest=nil  
-    local shortest=FOV  
-    for _,plr in ipairs(game.Players:GetPlayers()) do  
-        if plr~=player and plr.Team and plr.Team.Name==targetTeamName then  
-            local c = plr.Character  
-            if c and c:FindFirstChild(AimPart) and c:FindFirstChild("Humanoid") and c.Humanoid.Health>0 then  
-                local pos, visible = cam:WorldToViewportPoint(c[AimPart].Position)  
-                if visible then  
-                    local dist = (Vector2.new(pos.X,pos.Y)-Vector2.new(cam.ViewportSize.X/2, cam.ViewportSize.Y/2)).Magnitude  
-                    if dist<shortest and canSee(c[AimPart]) then  
-                        shortest = dist  
-                        nearest = c[AimPart]  
+    --===== AIMBOT（Criminalsのみ）=====--  
+    if AimbotEnabled then  
+        local nearest = nil  
+        local shortest = FOV  
+        for _,plr in ipairs(game.Players:GetPlayers()) do  
+            if plr~=player and plr.Team and plr.Team.Name==targetTeamName then  
+                local c = plr.Character  
+                if c and c:FindFirstChild(AimPart) and c:FindFirstChild("Humanoid") and c.Humanoid.Health>0 then  
+                    local pos, visible = cam:WorldToViewportPoint(c[AimPart].Position)  
+                    if visible then  
+                        local dist = (Vector2.new(pos.X,pos.Y)-Vector2.new(cam.ViewportSize.X/2, cam.ViewportSize.Y/2)).Magnitude  
+                        if dist<shortest and canSee(c[AimPart]) then  
+                            shortest = dist  
+                            nearest = c[AimPart]  
+                        end  
                     end  
                 end  
             end  
         end  
+        if nearest then  
+            local dir = (nearest.Position - cam.CFrame.Position).Unit  
+            cam.CFrame = cam.CFrame:Lerp(CFrame.new(cam.CFrame.Position, cam.CFrame.Position+dir), Smoothness)  
+        end  
     end  
-    if nearest then  
-        local dir = (nearest.Position - cam.CFrame.Position).Unit  
-        cam.CFrame = cam.CFrame:Lerp(CFrame.new(cam.CFrame.Position, cam.CFrame.Position+dir), Smoothness)  
-    end  
-end  
 
---===== ESP（Criminalsのみ）=====--  
-for _,plr in ipairs(game.Players:GetPlayers()) do  
-    if plr.Team and plr.Team.Name==targetTeamName and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then  
-        local hrp=plr.Character.HumanoidRootPart  
-        local pos, visible = cam:WorldToViewportPoint(hrp.Position)  
-        local label=getLabel(plr)  
-        if ESPEnabled then  
-            if visible then  
-                label.Visible=true  
-                label.Position=Vector2.new(pos.X,pos.Y)  
-                label.Text=plr.Name  
-                label.Color=Color3.fromRGB(255,80,80)  
+    --===== ESP（Criminalsのみ）=====--  
+    for _,plr in ipairs(game.Players:GetPlayers()) do  
+        if plr.Team and plr.Team.Name==targetTeamName and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then  
+            local hrp = plr.Character.HumanoidRootPart  
+            local pos, visible = cam:WorldToViewportPoint(hrp.Position)  
+            local label = getLabel(plr)  
+            if ESPEnabled then  
+                if visible then  
+                    label.Visible = true  
+                    label.Position = Vector2.new(pos.X,pos.Y)  
+                    label.Text = plr.Name  
+                    label.Color = Color3.fromRGB(255,80,80)  
+                else  
+                    label.Visible = false  
+                end  
             else  
-                label.Visible=false  
+                label.Visible = false  
             end  
-        else  
-            label.Visible=false  
-        end  
 
-        if ESP3DEnabled then  
-            if not plr.Character:FindFirstChild("Highlight") then  
-                local h=Instance.new("Highlight",plr.Character)  
-                h.FillTransparency=1  
-                h.OutlineTransparency=0  
-            end  
-            plr.Character.Highlight.OutlineColor=rainbow()  
-        else  
-            if plr.Character:FindFirstChild("Highlight") then  
-                plr.Character.Highlight:Destroy()  
+            if ESP3DEnabled then  
+                if not plr.Character:FindFirstChild("Highlight") then  
+                    local h = Instance.new("Highlight", plr.Character)  
+                    h.FillTransparency = 1  
+                    h.OutlineTransparency = 0  
+                end  
+                plr.Character.Highlight.OutlineColor = rainbow()  
+            else  
+                if plr.Character:FindFirstChild("Highlight") then  
+                    plr.Character.Highlight:Destroy()  
+                end  
             end  
         end  
-    end  
-end
-
+    end
 end)
 
 --====================================================
 -- 無限ジャンプ
 --====================================================
 game:GetService("UserInputService").JumpRequest:Connect(function()
-if infJumpEnabled then
-humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-end
+    if infJumpEnabled then
+        humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+    end
 end)
 
 player.CharacterAdded:Connect(function(new)
-char=new
-humanoid=new:WaitForChild("Humanoid")
+    char = new
+    humanoid = new:WaitForChild("Humanoid")
 end)
 
 --====================================================
@@ -208,150 +207,173 @@ frame.Parent = screenGui
 frame.ClipsDescendants = true
 frame.AnchorPoint = Vector2.new(0,0)
 local uICorner = Instance.new("UICorner")
-uICorner.CornerRadius=UDim.new(0,12)
-uICorner.Parent=frame
+uICorner.CornerRadius = UDim.new(0,12)
+uICorner.Parent = frame
 
 local title = Instance.new("TextLabel")
-title.Size=UDim2.new(1,0,0,30)
-title.Position=UDim2.new(0,0,0,0)
-title.BackgroundTransparency=1
-title.Text="Criminals TP GUI"
-title.TextColor3=Color3.fromRGB(255,255,255)
-title.Font=Enum.Font.GothamBold
-title.TextSize=18
-title.Parent=frame
+title.Size = UDim2.new(1,0,0,30)
+title.Position = UDim2.new(0,0,0,0)
+title.BackgroundTransparency = 1
+title.Text = "Criminals TP GUI"
+title.TextColor3 = Color3.fromRGB(255,255,255)
+title.Font = Enum.Font.GothamBold
+title.TextSize = 18
+title.Parent = frame
 
 -- ドラッグ
-local dragging=false
+local dragging = false
 local dragInput, mousePos, framePos
 title.InputBegan:Connect(function(input)
-if input.UserInputType==Enum.UserInputType.MouseButton1 then
-dragging=true
-mousePos=input.Position
-framePos=frame.Position
-input.Changed:Connect(function()
-if input.UserInputState==Enum.UserInputState.End then dragging=false end
-end)
-end
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        mousePos = input.Position
+        framePos = frame.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then dragging = false end
+        end)
+    end
 end)
 title.InputChanged:Connect(function(input)
-if input.UserInputType==Enum.UserInputType.MouseMovement then
-dragInput=input
-end
+    if input.UserInputType == Enum.UserInputType.MouseMovement then
+        dragInput = input
+    end
 end)
 game:GetService("UserInputService").InputChanged:Connect(function(input)
-if input==dragInput and dragging then
-local delta=input.Position-mousePos
-frame.Position=UDim2.new(framePos.X.Scale, framePos.X.Offset+delta.X,
-framePos.Y.Scale, framePos.Y.Offset+delta.Y)
-end
+    if input == dragInput and dragging then
+        local delta = input.Position - mousePos
+        frame.Position = UDim2.new(framePos.X.Scale, framePos.X.Offset + delta.X,
+                                   framePos.Y.Scale, framePos.Y.Offset + delta.Y)
+    end
 end)
 
 -- プレイヤードロップダウン
 local dropdown = Instance.new("TextButton")
-dropdown.Size=UDim2.new(0,300,0,30)
-dropdown.Position=UDim2.new(0,10,0,40)
-dropdown.Text="ターゲット選択"
-dropdown.BackgroundColor3=Color3.fromRGB(50,50,50)
-dropdown.TextColor3=Color3.fromRGB(255,255,255)
-dropdown.Font=Enum.Font.Gotham
-dropdown.TextSize=16
-dropdown.Parent=frame
+dropdown.Size = UDim2.new(0,300,0,30)
+dropdown.Position = UDim2.new(0,10,0,40)
+dropdown.Text = "ターゲット選択"
+dropdown.BackgroundColor3 = Color3.fromRGB(50,50,50)
+dropdown.TextColor3 = Color3.fromRGB(255,255,255)
+dropdown.Font = Enum.Font.Gotham
+dropdown.TextSize = 16
+dropdown.Parent = frame
 local uICornerBtn = Instance.new("UICorner")
-uICornerBtn.CornerRadius=UDim.new(0,8)
-uICornerBtn.Parent=dropdown
+uICornerBtn.CornerRadius = UDim.new(0,8)
+uICornerBtn.Parent = dropdown
 
 local playerListFrame = Instance.new("Frame")
-playerListFrame.Size=UDim2.new(0,300,0,120)
-playerListFrame.Position=UDim2.new(0,10,0,75)
-playerListFrame.BackgroundColor3=Color3.fromRGB(60,60,60)
-playerListFrame.Visible=false
-playerListFrame.Parent=frame
+playerListFrame.Size = UDim2.new(0,300,0,120)
+playerListFrame.Position = UDim2.new(0,10,0,75)
+playerListFrame.BackgroundColor3 = Color3.fromRGB(60,60,60)
+playerListFrame.Visible = false
+playerListFrame.Parent = frame
 local cornerList = Instance.new("UICorner")
-cornerList.CornerRadius=UDim.new(0,10)
-cornerList.Parent=playerListFrame
+cornerList.CornerRadius = UDim.new(0,10)
+cornerList.Parent = playerListFrame
 
-local function createBox(posX,placeholder)
-local box=Instance.new("TextBox")
-box.Size=UDim2.new(0,80,0,30)
-box.Position=UDim2.new(0,posX,0,200)
-box.PlaceholderText=placeholder
-box.BackgroundColor3=Color3.fromRGB(50,50,50)
-box.TextColor3=Color3.fromRGB(255,255,255)
-box.Font=Enum.Font.Gotham
-box.TextSize=16
-box.Parent=frame
-local corner=Instance.new("UICorner")
-corner.CornerRadius=UDim.new(0,8)
-corner.Parent=box
-return box
+local function createBox(posX, placeholder)
+    local box = Instance.new("TextBox")
+    box.Size = UDim2.new(0,80,0,30)
+    box.Position = UDim2.new(0,posX,0,200)
+    box.PlaceholderText = placeholder
+    box.BackgroundColor3 = Color3.fromRGB(50,50,50)
+    box.TextColor3 = Color3.fromRGB(255,255,255)
+    box.Font = Enum.Font.Gotham
+    box.TextSize = 16
+    box.Parent = frame
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0,8)
+    corner.Parent = box
+    return box
 end
 
-local XBox=createBox(10,"X")
-local YBox=createBox(100,"Y")
-local ZBox=createBox(190,"Z")
+local XBox = createBox(10,"X")
+local YBox = createBox(100,"Y")
+local ZBox = createBox(190,"Z")
 
-local tpButton=Instance.new("TextButton")
-tpButton.Size=UDim2.new(0,300,0,30)
-tpButton.Position=UDim2.new(0,10,0,165)
-tpButton.Text="テレポート"
-tpButton.BackgroundColor3=Color3.fromRGB(70,70,70)
-tpButton.TextColor3=Color3.fromRGB(255,255,255)
-tpButton.Font=Enum.Font.Gotham
-tpButton.TextSize=16
-tpButton.Parent=frame
-local uICornerBtn2=Instance.new("UICorner")
-uICornerBtn2.CornerRadius=UDim.new(0,8)
-uICornerBtn2.Parent=tpButton
+local tpButton = Instance.new("TextButton")
+tpButton.Size = UDim2.new(0,300,0,30)
+tpButton.Position = UDim2.new(0,10,0,165)
+tpButton.Text = "テレポート"
+tpButton.BackgroundColor3 = Color3.fromRGB(70,70,70)
+tpButton.TextColor3 = Color3.fromRGB(255,255,255)
+tpButton.Font = Enum.Font.Gotham
+tpButton.TextSize = 16
+tpButton.Parent = frame
+local uICornerBtn2 = Instance.new("UICorner")
+uICornerBtn2.CornerRadius = UDim.new(0,8)
+uICornerBtn2.Parent = tpButton
 
-dropdown.MouseButton1Click:Connect(function() playerListFrame.Visible=not playerListFrame.Visible end)
+dropdown.MouseButton1Click:Connect(function() playerListFrame.Visible = not playerListFrame.Visible end)
 
-local selectedTPPlayer=nil
+local selectedTPPlayer = nil
 local function updatePlayerList()
-playerListFrame:ClearAllChildren()
-local yOffset=0
-for _,plr in ipairs(game.Players:GetPlayers()) do
-if plr.Team and plr.Team.Name=="Criminals" then
-local btn=Instance.new("TextButton")
-btn.Size=UDim2.new(0,300,0,30)
-btn.Position=UDim2.new(0,0,0,yOffset)
-btn.Text=plr.Name
-btn.BackgroundColor3=Color3.fromRGB(90,90,90)
-btn.TextColor3=Color3.fromRGB(255,255,255)
-btn.Font=Enum.Font.Gotham
-btn.TextSize=16
-btn.Parent=playerListFrame
-local corner=Instance.new("UICorner")
-corner.CornerRadius=UDim.new(0,8)
-corner.Parent=btn
-yOffset=yOffset+35
+    playerListFrame:ClearAllChildren()
+    local yOffset = 0
 
-btn.MouseButton1Click:Connect(function()  
-            selectedTPPlayer=plr  
-            if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then  
-                local pos=plr.Character.HumanoidRootPart.Position  
-                XBox.Text=math.floor(pos.X)  
-                YBox.Text=math.floor(pos.Y)  
-                ZBox.Text=math.floor(pos.Z)  
-            end  
-            playerListFrame.Visible=false  
-        end)  
-    end  
+    -- Criminalsプレイヤー一覧
+    for _,plr in ipairs(game.Players:GetPlayers()) do
+        if plr.Team and plr.Team.Name == "Criminals" then
+            local btn = Instance.new("TextButton")
+            btn.Size = UDim2.new(0,300,0,30)
+            btn.Position = UDim2.new(0,0,0,yOffset)
+            btn.Text = plr.Name
+            btn.BackgroundColor3 = Color3.fromRGB(90,90,90)
+            btn.TextColor3 = Color3.fromRGB(255,255,255)
+            btn.Font = Enum.Font.Gotham
+            btn.TextSize = 16
+            btn.Parent = playerListFrame
+            local corner = Instance.new("UICorner")
+            corner.CornerRadius = UDim.new(0,8)
+            corner.Parent = btn
+            yOffset = yOffset + 35
+
+            btn.MouseButton1Click:Connect(function()  
+                selectedTPPlayer = plr  
+                if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then  
+                    local pos = plr.Character.HumanoidRootPart.Position  
+                    XBox.Text = math.floor(pos.X)  
+                    YBox.Text = math.floor(pos.Y)  
+                    ZBox.Text = math.floor(pos.Z)  
+                end  
+                playerListFrame.Visible = false  
+            end)
+        end
+    end
+
+    -- 「犯罪者のとこ」ボタン
+    local criminalSpotButton = Instance.new("TextButton")
+    criminalSpotButton.Size = UDim2.new(0,300,0,30)
+    criminalSpotButton.Position = UDim2.new(0,0,0,yOffset)
+    criminalSpotButton.Text = "犯罪者のとこ"
+    criminalSpotButton.BackgroundColor3 = Color3.fromRGB(90,90,90)
+    criminalSpotButton.TextColor3 = Color3.fromRGB(255,255,255)
+    criminalSpotButton.Font = Enum.Font.Gotham
+    criminalSpotButton.TextSize = 16
+    criminalSpotButton.Parent = playerListFrame
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0,8)
+    corner.Parent = criminalSpotButton
+
+    criminalSpotButton.MouseButton1Click:Connect(function()
+        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            player.Character.HumanoidRootPart.CFrame = CFrame.new(Vector3.new(-915.6, 94.27, 2044.25))
+        end
+        playerListFrame.Visible = false
+    end)
 end
 
-end
 updatePlayerList()
 game.Players.PlayerAdded:Connect(updatePlayerList)
 game.Players.PlayerRemoving:Connect(updatePlayerList)
 
 tpButton.MouseButton1Click:Connect(function()
-local x=tonumber(XBox.Text)
-local y=tonumber(YBox.Text)
-local z=tonumber(ZBox.Text)
-if x and y and z and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-player.Character.HumanoidRootPart.CFrame=CFrame.new(Vector3.new(x,y,z))
-end
+    local x = tonumber(XBox.Text)
+    local y = tonumber(YBox.Text)
+    local z = tonumber(ZBox.Text)
+    if x and y and z and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        player.Character.HumanoidRootPart.CFrame = CFrame.new(Vector3.new(x,y,z))
+    end
 end)
 
 -- Rayfield TP トグルで表示
-TPTab:CreateToggle({Name="TP GUI 表示", CurrentValue=false, Callback=function(v) screenGui.Enabled=v end})
+TPTab:CreateToggle({Name="TP GUI 表示", CurrentValue=false, Callback=function(v) screenGui.Enabled = v end})
