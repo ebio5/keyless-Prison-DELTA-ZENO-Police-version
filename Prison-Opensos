@@ -377,3 +377,46 @@ end)
 
 -- Rayfield TP トグルで表示
 TPTab:CreateToggle({Name="TP GUI 表示", CurrentValue=false, Callback=function(v) screenGui.Enabled = v end})
+-- [[ Rayfield UI: Antiタブ & Anti-Kick実装 ]]
+
+local AntiTab = Window:CreateTab("Anti", 4483362458) -- アイコンIDは適当だぜ
+
+local antikickEnabled = false
+AntiTab:CreateToggle({
+   Name = "Anti-Kick (スクリプト保護)",
+   CurrentValue = false,
+   Flag = "AntiKickToggle",
+   Callback = function(Value)
+      antikickEnabled = Value
+      if antikickEnabled then
+          -- [[ Anti-Kickの核心ロジック ]]
+          local mt = getrawmetatable(game)
+          local old = mt.__namecall
+          setreadonly(mt, false)
+
+          mt.__namecall = newcclosure(function(self, ...)
+              local method = getnamecallmethod()
+              local args = {...}
+
+              -- Kick命令が飛んできたら無視する
+              if antikickEnabled and (method == "Kick" or method == "kick") then
+                  warn("サーバーまたはスクリプトからのKickをブロックしたぜ！")
+                  return nil
+              end
+
+              return old(self, unpack(args))
+          end)
+          setreadonly(mt, true)
+      end
+   end,
+})
+
+-- おまけ：サーバーが満員やエラーで落ちるのを防ぐデバッグ用
+AntiTab:CreateButton({
+   Name = "再接続 (Server Rejoin)",
+   Callback = function()
+       local ts = game:GetService("TeleportService")
+       local p = game:GetService("Players").LocalPlayer
+       ts:Teleport(game.PlaceId, p)
+   end,
+})
